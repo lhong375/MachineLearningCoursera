@@ -52,7 +52,10 @@ A2 = [ones(size(Z2, 1),1) sigmoid(Z2)]; % 5000 * 26
 Z3 = A2 * Theta2'; % Theta2: 10 * 26 Z3: 5000 * 10
 H = A3 = sigmoid(Z3); % 5000 * 10
 
+penalty = (lambda/(2*m))*(sum(sum(Theta1(:, 2:end).^2, 2)) + sum(sum(Theta2(:,2:end).^2, 2)));
+
 J = (1/m) * sum( sum( (-Y).*log(H) - (1-Y).*log(1-H), 2 ) );
+J = J + penalty
 
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
@@ -69,6 +72,20 @@ J = (1/m) * sum( sum( (-Y).*log(H) - (1-Y).*log(1-H), 2 ) );
 %               over the training examples if you are implementing it for the
 %               first time.
 %
+
+Sigma3 = A3 - Y; % 5000 * 10
+Sigma2 = Sigma3 * Theta2 .* sigmoidGradient([ones(size(A1, 1), 1) Z2] ); % Theta2: 10 * 26 Z2: 5000 * 25 => 5000 * 26
+Sigma2 = Sigma2(:, 2:end); % 5000 * 25
+
+Delta_1 = Sigma2'*A1; % Sigma2: 5000 * 25 A1: 5000 * 401 => 25 * 401
+Delta_2 = Sigma3'*A2; % Sigma3: 5000 * 10 A2: 5000 * 26 => 10 * 26
+
+penalty_theta1_grad = (lambda/m)*[zeros(size(Theta1,1), 1) Theta1(:, 2:end)];
+penalty_theta2_grad = (lambda/m)*[zeros(size(Theta2,1), 1) Theta2(:, 2:end)];
+Theta1_grad = Delta_1./m + penalty_theta1_grad;
+Theta2_grad = Delta_2./m + penalty_theta2_grad;
+
+
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
